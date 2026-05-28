@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+secrets/*
+!secrets/.gitkeep
+*.pem
+*.key
+*.p12
+
+# Airflow
+airflow/logs/*
+!airflow/logs/.gitkeep
+
+# dbt
+target/
+dbt_packages/
+logs/
+.user.yml
+
+# Great Expectations
+gx/uncommitted/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Docker
+.dockerignore

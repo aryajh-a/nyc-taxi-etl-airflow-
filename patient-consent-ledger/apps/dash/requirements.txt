@@ -1,0 +1,2 @@
+dash==2.18.2
+# Phase 8 will add: dash-bootstrap-components, google-cloud-bigquery, plotly
