@@ -1,0 +1,11 @@
+# --- Orchestration ---
+apache-airflow==2.8.1
+apache-airflow-providers-google==10.16.0
+
+# --- GCP / BigQuery ---
+google-cloud-bigquery==3.17.2
+db-dtypes==1.2.0          # required to load BQ results into pandas DataFrames
+pyarrow==15.0.0           # Arrow backend used by the BQ -> pandas path
+
+# --- Transform ---
+pandas==2.1.4
