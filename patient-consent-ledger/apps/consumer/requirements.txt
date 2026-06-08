@@ -1,2 +1,0 @@
-# Phase 0: empty placeholder.
-# Phase 2 will add: confluent-kafka, google-cloud-bigquery, pydantic, structlog
