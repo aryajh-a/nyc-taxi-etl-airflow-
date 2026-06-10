@@ -2,10 +2,11 @@
 apache-airflow==2.8.1
 apache-airflow-providers-google==10.16.0
 
-# --- GCP / BigQuery ---
+# --- GCP / BigQuery / GCS ---
 google-cloud-bigquery==3.17.2
 db-dtypes==1.2.0          # required to load BQ results into pandas DataFrames
-pyarrow==15.0.0           # Arrow backend used by the BQ -> pandas path
+pyarrow==15.0.0           # Arrow backend for BQ -> pandas and parquet IO
+gcsfs==2024.2.0           # lets pandas read/write gs:// parquet for GCS staging
 
 # --- Transform ---
 pandas==2.1.4
