@@ -106,7 +106,7 @@ converges to the same state.
 ## Project structure
 
 ```
-nyc-taxi-etl/
+.
 ├── dags/
 │   └── etl_dag.py        # Airflow DAG: extract → transform → load (per ds)
 ├── etl/
