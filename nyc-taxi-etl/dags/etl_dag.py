@@ -30,6 +30,7 @@ import pendulum
 from airflow.decorators import dag, task
 from airflow.operators.python import get_current_context
 
+from etl.alerts import check_partition_quality, task_failure_alert
 from etl.extract import extract
 from etl.load import load
 from etl.storage import raw_uri, read_parquet, staging_uri, write_parquet
@@ -46,6 +47,10 @@ default_args = {
     "retries": 2,
     "retry_delay": pendulum.duration(minutes=5),
     "depends_on_past": False,
+    # Email on failure once retries are exhausted. We use a custom callback
+    # (richer message + log link) instead of email_on_failure's default mail.
+    "email_on_failure": False,
+    "on_failure_callback": task_failure_alert,
 }
 
 
@@ -78,6 +83,18 @@ def nyc_taxi_hourly_etl():
         return write_parquet(agg, staging_uri(ds))
 
     @task
+    def quality_check_task(staging_path: str) -> str:
+        """Inspect the staged aggregate and warn (by email) if it looks thin.
+
+        Passes the URI straight through to load — this is a non-blocking gate:
+        it emails on a suspicious partition but never fails the run.
+        """
+        ds = get_current_context()["ds"]
+        agg = read_parquet(staging_path)
+        check_partition_quality(agg, ds)
+        return staging_path
+
+    @task
     def load_task(staging_path: str) -> None:
         """Read the staged aggregate and MERGE it into the target table."""
         ds = get_current_context()["ds"]
@@ -86,8 +103,8 @@ def nyc_taxi_hourly_etl():
         logger.info("Loaded partition %s", ds)
 
     # Dependencies are expressed by passing each task's return (a GCS URI) to the
-    # next: extract -> transform -> load.
-    load_task(transform_task(extract_task()))
+    # next: extract -> transform -> quality_check -> load.
+    load_task(quality_check_task(transform_task(extract_task())))
 
 
 nyc_taxi_hourly_etl()

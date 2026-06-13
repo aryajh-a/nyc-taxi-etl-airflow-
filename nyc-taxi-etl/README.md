@@ -210,6 +210,43 @@ range safely.
 
 ---
 
+## Alerting
+
+The DAG emails on two conditions ([etl/alerts.py](etl/alerts.py)):
+
+| Alert | Trigger | Effect |
+|-------|---------|--------|
+| **Failure** | any task errors out *after retries are exhausted* | `on_failure_callback` emails a notice with the task, partition, exception, and a log link |
+| **Data quality** | a partition produces **0** or **< 20** hourly rows | `quality_check_task` emails a warning — the run still succeeds (re-run later; it's idempotent) |
+
+The data-quality check is a **non-blocking gate** between transform and load: it
+flags a silently-thin day without halting the pipeline. Failures retry twice
+(5-min delay) before alerting, so transient blips don't spam you.
+
+### Setup
+
+Alerts use Airflow's `send_email`, configured via the `[smtp]` settings (here as
+env vars) plus an `alert_email` **Airflow Variable** for the recipient list:
+
+```bash
+# Recipient list — set as an Airflow Variable (comma-separated for multiple)
+airflow variables set alert_email "you@example.com"
+
+# SMTP config (env vars)
+export AIRFLOW__SMTP__SMTP_HOST=smtp.gmail.com
+export AIRFLOW__SMTP__SMTP_PORT=587
+export AIRFLOW__SMTP__SMTP_STARTTLS=True
+export AIRFLOW__SMTP__SMTP_USER=you@example.com
+export AIRFLOW__SMTP__SMTP_PASSWORD=your_app_password   # Gmail: use an App Password
+export AIRFLOW__SMTP__SMTP_MAIL_FROM=you@example.com
+```
+
+You can also set the Variable in the UI under **Admin → Variables** (key
+`alert_email`).
+
+> If the `alert_email` Variable is unset, alerts are logged and skipped rather
+> than raising — a missing mail config never breaks the DAG.
+
 ## Cost notes
 
 - The extract filters on `DATE(pickup_datetime)`, which **cannot prune** by a
